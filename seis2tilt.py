@@ -22,19 +22,19 @@ ijoe = read(ijoePath)
 ijotRaw = open(ijoTiltPath,'r')
 ijotRead = csv.reader(ijotRaw, delimiter=',')
 ijotList = []
-endtime = ''
+ijotTime = []
 for row in ijotRead:
     if(float(row[1]) == 0):
         ijotList.append(0.10940)
     else:
         ijotList.append(float(row[1]))
-    endtime = UTCDateTime(row[0])
+    ijotTime.append(UTCDateTime(row[0]))
     
-print endtime
+stats = {'starttime':ijotTime[0],'delta':'60'}
+print ijotRead
 ijotArray = np.array(ijotList)
-ijotTrace = Trace(ijotArray)
-ijotTrace.stats.delta = 60
-ijotTrace.endtime = endtime
+ijotTrace = Trace(data=ijotArray,header=stats)
+#jotTrace.stats.delta = 60
 ijot = Stream(ijotTrace)
 ijot.plot()
 #print ijotRead[0][0]
@@ -45,6 +45,8 @@ ijoz.merge()
 ijon.merge()
 ijoe.merge()
 
+print ijon[0].stats
+print ijot[0].stats
 #ijoz.plot()
 #ijon.plot()
 #ijoe.plot()
