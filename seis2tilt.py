@@ -11,21 +11,20 @@ import numpy as np
 import csv
 import matplotlib.pyplot as plt
 
-ijozPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/IJO/ijob-z/*.msd'
-ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/IJO/ijob-n/*.msd'
-ijoePath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/IJO/ijob-e/*.msd'
-ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/IJO/gunungijo.csv'
+startCut = "20161205T000000.0"
+endCut = "20161231T235959.9"
 
-ijoz = read(ijozPath)
+ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/IJO/satuBulan/ijob-n/*.msd'
+ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/IJO/gunungijo2.csv'
+
 ijon = read(ijonPath)
-ijoe = read(ijoePath)
 ijotRaw = open(ijoTiltPath,'r')
 ijotRead = csv.reader(ijotRaw, delimiter=',')
 ijotList = []
 ijotTime = []
 for row in ijotRead:
-    if(float(row[1]) == 0):
-        ijotList.append(0.10940)
+    if((float(row[1]) > 0.110) | (float(row[1]) == 0)):
+        ijotList.append(0.106)
     else:
         ijotList.append(float(row[1]))
     ijotTime.append(UTCDateTime(row[0]))
@@ -36,20 +35,12 @@ ijotArray = np.array(ijotList)
 ijotTrace = Trace(data=ijotArray,header=stats)
 #jotTrace.stats.delta = 60
 ijot = Stream(ijotTrace)
+ijot = ijot.slice(starttime = UTCDateTime(startCut), endtime = UTCDateTime(endCut))
 ijot.plot()
 #print ijotRead[0][0]
 #ijotStats.starttime = ijotList[0].strip().split()[0]
-
-
-ijoz.merge()
+ijon.resample(7);
 ijon.merge()
-ijoe.merge()
-
-print ijon[0].stats
-print ijot[0].stats
-#ijoz.plot()
-#ijon.plot()
-#ijoe.plot()
 
 #poles = [-0.149+0.149j,-0.149-0.149j,-503+0j,-1010+0j,-1130+0j]
 poles = [-0.01178+0.01178j, -0.01178-0.01178j, -160+0j, -80+0j, -180+0j]
@@ -71,33 +62,24 @@ paz_cmg40T = {'poles': poles,
               'sensitivity': 2*2977.0*1e6}
 
 # Apply Instrument Correction to each channel
-ijoz.simulate(paz_remove=paz_cmg40T,remove_sensitivity = True, taper = True, zero_mean=True,simulate_sensitivity=True)
 ijon.simulate(paz_remove=paz_cmg40T,remove_sensitivity = True, taper = True, zero_mean=True,simulate_sensitivity=True)
-ijoe.simulate(paz_remove=paz_cmg40T,remove_sensitivity = True, taper = True, zero_mean=True,simulate_sensitivity=True)
 
-ijon.filter('highpass', freq = 0.00005, corners=2, zerophase=True)
+ijon.filter('highpass', freq = 0.000055, corners=2, zerophase=True)
 ijon.filter('lowpass', freq = 0.001, corners=2, zerophase=True)
 
-#ijoz.plot()
-ijon.plot()
-#ijoe.plot()
-
 # Create copy of each channel to get acceleration value
-#ijozA = ijoz.copy()
 ijonA = ijon.copy()
-#ijoeA = ijoe.copy()
 
 # Calculate Acceleration value
-#ijozA.differentiate(method = 'gradient')
 ijonA.differentiate(method = 'gradient')
-#ijoeA.differentiate(method = 'gradient')
 
-#tilt = ijonA[0].data/9.81
-#trace = Trace(tilt)
-#stream = Stream(trace)
+tilt = ijonA[0].data/9.81
+trace = Trace(data=tilt,header=stats)
+ijonTs = Stream(trace)
 
-#ijozA.plot()
-ijonA.plot()
-#ijoeA.plot()
-
-#stream.plot()
+ijon = ijon.slice(starttime = UTCDateTime(startCut), endtime = UTCDateTime(endCut))
+ijonA = ijonA.slice(starttime = UTCDateTime(startCut), endtime = UTCDateTime(endCut))
+ijonTs = ijonTs.slice(starttime = UTCDateTime(startCut), endtime = UTCDateTime(endCut))
+#ijon.plot()
+#ijonA.plot()
+ijonTs.plot()
