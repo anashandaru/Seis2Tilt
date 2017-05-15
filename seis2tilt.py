@@ -28,6 +28,20 @@ startCut = "20161205T000000.0"
 endCut = "20161225T235959.9"
 
 # Set seismic and tilt data file path respectively
+
+# Gunung Labuhan
+#ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/lab-n/*.msd'
+#ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/labuhan.csv'
+
+# Gunung Grawah
+#ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/grab-n/*.msd'
+#ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/grawah.csv'
+
+# Gunung Klatakan
+#ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/klab-n/*.msd'
+#ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/klatakan.csv'
+
+# Gunung Ijo
 ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/ijob-n/*.msd'
 ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/gunungijo.csv'
 
