@@ -12,29 +12,33 @@ import csv
 import matplotlib.pyplot as plt
 
 # Time cut for labuhan
-#startCut = "20160220T000000.0"
-#endCut = "20160311T235959.9"
+startCut = "20160220T000000.0"
+endCut = "20160311T235959.9"
+magicNum = 10000
 
 # Time cut for grawah
 #startCut = "20151005T000000.0"
-#endCut = "20151025T235959.9"
+#endCut = "20151020T235959.9"
+#magicNum = 100000
 
 # Time cut for klatakan
-#startCut = "20160927T000000.0"
-#endCut = "20161018T235959.9"
+#startCut = "20161008T000000.0"
+#endCut = "20161015T235959.9"
+#magicNum = 5000
 
 # Time cut for ijo
-startCut = "20161205T000000.0"
-endCut = "20161225T235959.9"
+#startCut = "20161205T000000.0"
+#endCut = "20161225T235959.9"
+#magicNum = 100
 
 # Set seismic and tilt data file path respectively
 
 # Gunung Labuhan
-#ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/lab-n/*.msd'
-#ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/labuhan.csv'
+ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/lab-n/*.msd'
+ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/labuhan.csv'
 
 # Gunung Grawah
-#ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/grab-n/*.msd'
+#ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/grab-e/*.msd'
 #ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/grawah.csv'
 
 # Gunung Klatakan
@@ -42,13 +46,13 @@ endCut = "20161225T235959.9"
 #ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/klatakan.csv'
 
 # Gunung Ijo
-ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/ijob-n/*.msd'
-ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/gunungijo.csv'
+#ijonPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/ijob-n/*.msd'
+#ijoTiltPath = r'/home/anas/Documents/BPPTKG/Seismometer2Tilt/Data/gunungijo.csv'
 
 # Read seismic data and return to ijon
 ijon = read(ijonPath)
 ijon.resample(7); # resample seismic raw data
-ijon.merge() # merge seismic data
+ijon.merge(fill_value = 'interpolate') # merge seismic data
 
 #ijoz = read(ijozPath)
 #ijoz.resample(7); # resample seismic raw data
@@ -60,10 +64,10 @@ ijotRead = csv.reader(ijotRaw, delimiter=',')
 ijotList = []
 ijotTime = []
 for row in ijotRead:
-    if((float(row[2]) > 0.110) | (float(row[1]) == 0)):
-        ijotList.append(0.106)
+    if((float(row[2]) > 0.016)&(float(row[2]) < 0.014) & (float(row[2]) == 0)):
+        ijotList.append(0.015)
     else:
-        ijotList.append(float(row[1]))
+        ijotList.append(float(row[2]))
     ijotTime.append(UTCDateTime(row[0]))
     
 stats = {'starttime':ijotTime[0],'delta':'60'}
@@ -97,12 +101,17 @@ ijoN = ijon.copy();
 
 # Apply Instrument Correction
 ijon.simulate(paz_remove=paz_cmg40T,remove_sensitivity = True, taper = True, zero_mean=True,simulate_sensitivity=True)
-ijon.filter('highpass', freq = 0.00000005, corners=2, zerophase=True)
-ijon.filter('lowpass', freq = 0.0005, corners=2, zerophase=True)
+#ijon.filter('highpass', freq = 0.00000005, corners=2, zerophase=True)
+#ijo
+#ijon.filter('lowpass', freq = 0.05, corners=2, zerophase=True)
+#labuhan
+ijon.filter('lowpass', freq = 0.005, corners=2, zerophase=True)
+#grawah
+#ijon.filter('lowpass', freq = 0.000008, corners=2, zerophase=True)
 
-#ijoz.simulate(paz_remove=paz_cmg40T,remove_sensitivity = True, taper = True, zero_mean=True,simulate_sensitivity=True)
-#ijoz.filter('highpass', freq = 0.000055, corners=2, zerophase=True)
-#ijoz.filter('lowpass', freq = 0.001, corners=2, zerophase=True)
+# Klatakan
+#ijon.filter('highpass', freq = 0.000001, corners=2, zerophase=True)
+#ijon.filter('lowpass', freq = 0.05, corners=2, zerophase=True)
 
 
 # Create copy of each channel to get acceleration value
@@ -117,8 +126,7 @@ ijonA.differentiate(method = 'gradient')
 
 # Calculate Tilt Value
 # tilt =  np.sqrt(np.square(ijonA[0].data)+np.square(ijonA[0].data))/9.81
-#tilt = ijonA[0].data/9.81
-tilt = ijonA[0].data/-9.81
+tilt = ijonA[0].data/-9.81*magicNum
 trace = Trace(data=tilt,header= ijonA[0].stats)
 ijonTs = Stream(trace)
 
@@ -151,3 +159,6 @@ print("\tTilt derived from velocity of N component")
 # Plot tilt data
 ijot.plot()
 print("\tTilt from tiltmeter")
+
+combinedStream = ijonTs + ijot
+combinedStream.plot()
