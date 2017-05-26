@@ -73,3 +73,35 @@ def ReadMonthy(station):
         stream.merge(fill_value = 'interpolate') # merge seismic data
         resultStream += stream
     return resultStream
+
+def GetTilt(stream):
+    # Clone Stream
+    cstream = stream.copy()
+    
+    # Perform instrument correction
+    cstream.simulate(paz_remove=paz_cmg40T,remove_sensitivity = True, taper = True, zero_mean=True,simulate_sensitivity=True)
+    
+    # Perform filering
+    cstream.filter('highpass', freq = 0.00000005, corners=2, zerophase=True)
+    cstream.filter('lowpass', freq = 0.005, corners=2, zerophase=True)
+    
+    # Perform diferentiation
+    cstream.differentiate(method = 'gradient')
+    
+    tilt = Stream()
+    for traceComp in cstream:
+        # Calculate Tilt Value
+        tiltVal = traceComp.data/-9.81
+        trace = Trace(data=tiltVal,header= traceComp.stats)
+        tilt += Stream(trace)
+    
+    fiveDaysInSec = 432000
+    startCut = tilt[0].stats.starttime + fiveDaysInSec
+    endCut = tilt[0].stats.endtime - fiveDaysInSec
+    tilt = tilt.slice(starttime = UTCDateTime(startCut), endtime = UTCDateTime(endCut))
+    
+    return tilt
+    
+    
+    
+    
